@@ -1,22 +1,23 @@
 import Foundation
 
+@MainActor
 class ViewModel: ObservableObject {
-    @Published var news: [NewsApi] = []
-    @Published var url = "https://saurav.tech/NewsAPI/top-headlines/category/business/in.json"
+    @Published var news: NewsModel? = nil
+    @Published var error: String? = nil
+    @Published var newsURL: String = "https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey=ae1b6a29d8d741d9b94f1d7acfe64d48"
     
-    func fetchData() async {
-        guard let url = URL(string: url) else { return }
+    func fetchNews() async {
+        guard let url = URL(string: newsURL) else {
+                self.error = "Invalid URL"
+            return
+        }
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            
-            let decodedResponse = try JSONDecoder().decode(NewsApiResponse.self, from: data)
-            DispatchQueue.main.async {
-
-                self.news = decodedResponse.articles
-            }
+            let decodeNews = try JSONDecoder().decode(NewsModel.self, from: data)
+                self.news = decodeNews
         } catch {
-            print("Error fetching data: \(error)")
+                self.error = "Error fetching news: \(error.localizedDescription)"
         }
     }
 }

@@ -349,53 +349,56 @@ struct ExpenseAndIncomeChart: View {
 struct BusinessNews: View {
     @StateObject var viewModel = ViewModel()
     @ObservedObject var backgroundPageManager: BackgroundPageManager
+    
     var body: some View {
-        ScrollView{
-            VStack{
+        ScrollView {
+            VStack(alignment: .leading) {
                 
-                VStack(alignment: .leading) {
-                    if !viewModel.news.isEmpty {
-                        Text("Financial News")
-                            .font(.custom("Poppins-SemiBold", size: 25))
-                            .foregroundStyle(backgroundPageManager.isDarkMode == false ? Color.black : Color.white)
-                    }
-                    
-                    
-                    ForEach(viewModel.news.reversed().suffix(5).reversed()) { news in
-                        
-                        Link(destination: URL(string: news.url)!) {
-                            
-                            VStack{
-                                HStack{
-                                    AsyncImage(url: URL(string: news.urlToImage)) { Image in
-                                        Image
-                                            .resizable()
+                if let articles = viewModel.news?.articles, !articles.isEmpty {
+                    Text("Financial News")
+                        .font(.custom("Poppins-SemiBold", size: 25))
+                        .foregroundColor(backgroundPageManager.isDarkMode ? .white : .black)
+                }
+                
+                if let articles = viewModel.news?.articles.suffix(10) {
+                    ForEach(articles, id: \.url) { article in
+                        Link(destination: URL(string: article.url) ?? URL(string: "https://example.com")!) {
+                            VStack {
+                                HStack {
+                                    if let urlToImage = article.urlToImage,
+                                       let url = URL(string: urlToImage) {
+                                        AsyncImage(url: url) { image in
+                                            image
+                                                .resizable()
+                                                .frame(width: 150, height: 100)
+                                                .cornerRadius(10)
+                                        } placeholder: {
+                                            ProgressView()
+                                        }
+                                    } else {
+                                        Color.gray
                                             .frame(width: 150, height: 100)
                                             .cornerRadius(10)
-                                    } placeholder: {
-                                        ProgressView()
                                     }
-                                    
-                                    VStack(alignment: .leading){
-                                        Text(news.title)
+                                    VStack(alignment: .leading) {
+                                        Text(article.title)
                                             .font(.custom("Poppins-SemiBold", size: 15))
-                                            .foregroundStyle(backgroundPageManager.isDarkMode == false ? Color.black : Color.white)
+                                            .foregroundColor(backgroundPageManager.isDarkMode ? .white : .black)
                                             .multilineTextAlignment(.leading)
+                                            .lineLimit(3)
                                     }
                                 }
                             }
                             .padding()
-                            .foregroundStyle(Color.white)
                             .frame(maxWidth: .infinity)
-                            .background(backgroundPageManager.isDarkMode == false ? Color.white.opacity(0.4) : Color.black.opacity(0.4))
+                            .background(backgroundPageManager.isDarkMode ? Color.black.opacity(0.4) : Color.white.opacity(0.4))
                             .cornerRadius(20)
-                            
                         }
                     }
-                }.frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .task {
-                await viewModel.fetchData()
+                await viewModel.fetchNews()
             }
         }
     }
