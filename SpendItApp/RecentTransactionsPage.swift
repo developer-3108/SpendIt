@@ -256,8 +256,7 @@ struct RecentExpenseTransaction: View {
                 
                 ForEach(
                     expensePageManager.expenseDetailsArray
-                        .sorted(by: { $0.expenseDate < $1.expenseDate })
-                        .suffix(3).reversed(),
+                        .sorted(by: { $0.expenseDate < $1.expenseDate }).reversed(),
                     id: \.expenseDate
                 ) { transaction in
                     VStack{
